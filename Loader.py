@@ -168,87 +168,79 @@ class Loader:
             self.__log("Creating timestamp.json")
             self.__create_timestamp()
 
-    def check_updates(self):
-        branch_name = self.__config()["updates"]["branch_name"]
-        update_frequency = self.__config()["updates"]["update_frequency"].lower()
-        valid_frequencies = ["always", "day", "week", "month", "never"]
-        time_difference = time.time() - self.__timestamp()["timestamp"]
+    # def check_updates(self):
+    #     branch_name = self.__config()["updates"]["branch_name"]
+    #     update_frequency = self.__config()["updates"]["update_frequency"].lower()
+    #     valid_frequencies = ["always", "day", "week", "month", "never"]
+    #     time_difference = time.time() - self.__timestamp()["timestamp"]
 
-        if update_frequency == valid_frequencies[0]:
-            it_is_time_for_update = True
-        elif update_frequency == valid_frequencies[1]:
-            it_is_time_for_update = time_difference >= self.__DAY_SECONDS
-        elif update_frequency == valid_frequencies[2]:
-            it_is_time_for_update = time_difference >= self.__WEEK_SECONDS
-        elif update_frequency == valid_frequencies[3]:
-            it_is_time_for_update = time_difference >= self.__MONTH_SECONDS
-        elif update_frequency == valid_frequencies[4]:
-            it_is_time_for_update = False
-        else:
-            self.__error(f"Unknown update frequency - {update_frequency}, available: {valid_frequencies}")
+    #     if update_frequency == valid_frequencies[0]:
+    #         it_is_time_for_update = True
+    #     elif update_frequency == valid_frequencies[1]:
+    #         it_is_time_for_update = time_difference >= self.__DAY_SECONDS
+    #     elif update_frequency == valid_frequencies[2]:
+    #         it_is_time_for_update = time_difference >= self.__WEEK_SECONDS
+    #     elif update_frequency == valid_frequencies[3]:
+    #         it_is_time_for_update = time_difference >= self.__MONTH_SECONDS
+    #     elif update_frequency == valid_frequencies[4]:
+    #         it_is_time_for_update = False
+    #     else:
+    #         self.__error(f"Unknown update frequency - {update_frequency}, available: {valid_frequencies}")
+    #         return
 
-            return
+    #     if it_is_time_for_update:
+    #         if not (self.__GIT_PATH.exists() or self.__GIT_PATH.is_dir()):
+    #             self.__error("Root directory of Allor is not a git repository. Update canceled.")
+    #             return
 
-        if it_is_time_for_update:
-            if not (self.__GIT_PATH.exists() or self.__GIT_PATH.is_dir()):
-                self.__error("Root directory of Allor is not a git repository. Update canceled.")
+    #         try:
+    #             import git
+    #             from git import Repo
+    #             from git import GitCommandError
 
-                return
+    #             repo = Repo(self.__ROOT_PATH, odbt=git.db.GitDB)
+    #             current_commit = repo.head.commit.hexsha
 
-            try:
-                import git
+    #             repo.remotes.origin.fetch()
+    #             latest_commit = getattr(repo.remotes.origin.refs, branch_name).commit.hexsha
 
-                from git import Repo
-                from git import GitCommandError
+    #             if current_commit == latest_commit:
+    #                 if self.__config()["updates"]["notify_if_no_new_updates"]:
+    #                     self.__notification("No new updates.")
+    #             else:
+    #                 if self.__config()["updates"]["notify_if_has_new_updates"]:
+    #                     self.__notification("New updates are available.")
 
-                # noinspection PyTypeChecker, PyUnboundLocalVariable
-                repo = Repo(self.__ROOT_PATH, odbt=git.db.GitDB)
-                current_commit = repo.head.commit.hexsha
+    #                 if self.__config()["updates"]["auto_update"]:
+    #                     update_mode = self.__config()["updates"]["update_mode"].lower()
+    #                     valid_modes = ["soft", "hard"]
 
-                repo.remotes.origin.fetch()
+    #                     if repo.active_branch.name != branch_name:
+    #                         try:
+    #                             repo.git.checkout(branch_name)
+    #                         except GitCommandError:
+    #                             self.__error(f"An error occurred while switching to the branch {branch_name}.")
+    #                             return
 
-                latest_commit = getattr(repo.remotes.origin.refs, branch_name).commit.hexsha
+    #                     if update_mode == "soft":
+    #                         try:
+    #                             repo.git.pull()
+    #                         except GitCommandError:
+    #                             self.__error("An error occurred during the update. "
+    #                                          "It is recommended to use \"hard\" update mode. "
+    #                                          "But be careful, it erases all personal changes from Allor repository.")
+    #                     elif update_mode == "hard":
+    #                         repo.git.reset('--hard', 'origin/' + branch_name)
+    #                     else:
+    #                         self.__error(f"Unknown update mode - {update_mode}, available: {valid_modes}")
+    #                         return
 
-                if current_commit == latest_commit:
-                    if self.__config()["updates"]["notify_if_no_new_updates"]:
-                        self.__notification("No new updates.")
-                else:
-                    if self.__config()["updates"]["notify_if_has_new_updates"]:
-                        self.__notification("New updates are available.")
+    #                     self.__notification("Update complete.")
 
-                    if self.__config()["updates"]["auto_update"]:
-                        update_mode = self.__config()["updates"]["update_mode"].lower()
-                        valid_modes = ["soft", "hard"]
+    #             self.__update_timestamp()
 
-                        if repo.active_branch.name != branch_name:
-                            try:
-                                repo.git.checkout(branch_name)
-                            except GitCommandError:
-                                self.__error(f"An error occurred while switching to the branch {branch_name}.")
-
-                                return
-
-                        if update_mode == "soft":
-                            try:
-                                repo.git.pull()
-                            except GitCommandError:
-                                self.__error("An error occurred during the update. "
-                                             "It is recommended to use \"hard\" update mode. "
-                                             "But be careful, it erases all personal changes from Allor repository.")
-
-                        elif update_mode == "hard":
-                            repo.git.reset('--hard', 'origin/' + branch_name)
-                        else:
-                            self.__error(f"Unknown update mode - {update_mode}, available: {valid_modes}")
-
-                            return
-
-                        self.__notification("Update complete.")
-
-                self.__update_timestamp()
-
-            except ImportError:
-                self.__error("GitPython is not installed.")
+    #         except ImportError:
+    #             self.__error("GitPython is not installed.")
 
     def setup_rembg(self):
         os.environ["U2NET_HOME"] = folder_paths.models_dir + "/onnx"
